@@ -76,7 +76,7 @@ runs:
             echo "::notice::Checking if PR environment has deployed..."
 
             echo "git.head_ref is ${{ inputs.ref }}"
-            echo "respository is ${{ input.repository }}"
+            echo "respository is ${{ inputs.repository }}"
             #gh api /repos/gilzow/wordpress-tester/commits/9dfc62f/statuses | jq -r 'map(select(.state | contains("success"))) | .[] .target_url'
             counter=0
             numberOfSteps=${{ steps.setup-counts.outputs.steps }}
