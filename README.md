@@ -1,4 +1,4 @@
-# Create Auto-Merge Pull Request
+# Retrieve Target URL from Platform.sh for PR Environment
 Polls the [GitHub Status API endpoint](https://docs.github.com/en/enterprise-server@3.0/rest/reference/commits#commit-statuses) 
 for a Pull Request external integration until `success` is posted, and returns the value for `target_url`. 
 
