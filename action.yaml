@@ -25,17 +25,20 @@ outputs:
         description: "Target URL as returned by the Platform.sh integration"
         value: ${{ steps.random-number-generator.outputs.random-id }}
 
+env:
+    GITHUB_TOKEN: ${{ inputs.github-token }}
 
 # Things we need to do
-
 runs:
     using: "composite"
     steps:
+        - name: 'Set up Github token'
+          id: setup-gh-token
+          shell: bash
+          run: echo "GITHUB_TOKEN=${{ inputs.github-token }}" >> $GITHUB_ENV
         - name: 'Verify Repo Exists'
           id: verify-repo
           shell: bash
-          env:
-              GITHUB_TOKEN: ${{ inputs.github-token }}
           run: |
             repoID=$(gh api /repos/${{ inputs.repository }} | jq '.id')
             if [[ "null" == "${repoID}" ]]; then
