@@ -25,9 +25,6 @@ outputs:
         description: "Target URL as returned by the Platform.sh integration"
         value: ${{ steps.random-number-generator.outputs.random-id }}
 
-env:
-    GITHUB_TOKEN: ${{ inputs.github-token }}
-
 # Things we need to do
 runs:
     using: "composite"
