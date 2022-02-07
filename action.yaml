@@ -67,8 +67,8 @@ runs:
             fi
             let steps="${totaltime}/${delay}"
             echo "::set-output name=steps::${steps}"
-        - name: ''
-          id: check-for-status
+        - name: 'Retrieve Target URL'
+          id: get-target-url
           shell: bash
           env:
               GITHUB_TOKEN: ${{ inputs.github-token }}
