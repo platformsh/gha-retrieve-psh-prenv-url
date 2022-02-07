@@ -97,7 +97,7 @@ runs:
               exit 1;
             else
               echo "::notice::Environment deployed!"
-              echo "set-output name=target_url::${target_url}"
+              echo "::set-output name=target_url::${target_url}"
             fi
 
         # See https://github.com/cli/cli/issues/5075
