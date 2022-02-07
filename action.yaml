@@ -1,0 +1,107 @@
+name: 'Retrieve Target URL of Platform.sh integration'
+description: 'Checks the status of the Platform.sh integration for a success state, and returns the Target URL of the deployed environment.'
+inputs:
+    repository:  # owner of the repo
+        description: 'Owner/namespace of the target repository. Default of {github.repository}'
+        required: false
+        default: ${{ github.repository }}
+    ref:
+        description: 'The branch or tag ref that we should check for a status. Default of {github.head_ref}'
+        required: false
+        default: ${{ github.head_ref }}
+    github-token:
+        description: 'Github token to the repository so we can work with the github api. Typically GITHUB_TOKEN'
+        required: true
+    timeout:
+        description: 'How long (in seconds) should we continue checking for the new environment?'
+        required: false
+        default: 300
+    delay-in-seconds:
+        description: 'The delay in seconds between each check.'
+        required: false
+        default: 10
+outputs:
+    target_url:
+        description: "Target URL as returned by the Platform.sh integration"
+        value: ${{ steps.random-number-generator.outputs.random-id }}
+
+
+# Things we need to do
+
+runs:
+    using: "composite"
+    steps:
+        - name: 'Verify Repo Exists'
+          id: verify-repo
+          shell: bash
+          env:
+              GITHUB_TOKEN: ${{ inputs.github-token }}
+          run: |
+            repoID=$(gh api /repos/${{ inputs.repository }} | jq '.id')
+            if [[ "null" == "${repoID}" ]]; then
+                echo "::error::The repo you gave me, ${{ inputs.repository }}, is not valid or I do not have access to it with the GITHUB_TOKEN you used."
+                exit 1;
+            fi
+        - name: 'Verify ref exists'
+          id: verify-ref
+          shell: bash
+          run: |
+            refID=$(gh api /repos/${{ inputs.repository }}/commits/${{ inputs.ref }} | jq '.sha')
+            if [[ "null" == "${repoID}" ]]; then
+              echo "::error::The ref you gave me, ${{ inputs.ref }}, is not valid or I do not have access to it with the GITHUB_TOKEN you used."
+              exit 1;
+            fi
+        - name: 'Verify timeouts, sleep delays'
+          id: setup-counts
+          shell: bash
+          run: |
+            totaltime=${{ inputs.timeout }}
+            if [ -z "${totaltime##*[!0-9]*}" ]; then
+              echo "::error::The value you gave me for timeout must be an integer."
+              exit 1;
+            fi
+            delay=${{ inputs.delay-in-seconds }}
+            if [ -z "${totaltime##*[!0-9]*}" ]; then
+              echo "::error::The value you gave me for timeout must be an integer."
+              exit 1;
+            fi
+            let steps="${totaltime}/${delay}"
+            echo "::set-output name=steps::${steps}"
+        - name: ''
+          id: check-for-status
+          shell: bash
+          env:
+              GITHUB_TOKEN: ${{ inputs.github-token }}
+          run: |
+            echo "::notice::Checking if PR environment has deployed..."
+
+            echo "git.head_ref is ${{ inputs.ref }}"
+            echo "respository is ${{ input.repository }}"
+          #gh api /repos/gilzow/wordpress-tester/commits/9dfc62f/statuses | jq -r 'map(select(.state | contains("success"))) | .[] .target_url'
+          #target_url=$(gh api /repos/${{ github.repository_owner }}/commits/${{ github.ref }}/statuses | jq -r 'map(select(.state | contains("success"))) | .[] .target_url' )
+
+            counter=0
+            numberOfSteps=${{ steps.setup-counts.outputs.steps }}
+            target_url=""
+            printf "checking if Pr environment is deployed."
+            statusLocation="/repos/${{ inputs.repository }}/commits/${{ inputs.ref }}/statuses"
+            printf "I'm gonna check %s for a status...\n" "${statusLocation}"
+            while (( counter < numberOfSteps )) && [[ -z "${target_url}" ]]; do
+                sleep ${{ inputs.delay-in-seconds }}
+
+                target_url=$(gh api "${statusLocation}" | jq -r 'map(select(.state | contains("success"))) | .[] .target_url' )
+                printf "Attempt %d of %d.\n" "${counter}" "${numberOfSteps}
+                counter=$((++counter))
+            done
+
+            if [[ -z "$target_url" ]]; then
+              echo "::error::I was unable to retrieve the target url for this ref. Check the deploy logs to see what happened."
+              exit 1;
+            else
+              echo "::notice::Environment deployed!"
+              echo "set-output name=target_url::${target_url}"
+            fi
+
+        # See https://github.com/cli/cli/issues/5075
+        #- name: Get the Repo
+          #uses: actions/checkout@v2
