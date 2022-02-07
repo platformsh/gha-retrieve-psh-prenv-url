@@ -23,7 +23,7 @@ inputs:
 outputs:
     target_url:
         description: "Target URL as returned by the Platform.sh integration"
-        value: ${{ steps.random-number-generator.outputs.random-id }}
+        value: ${{ steps.get-target-url.outputs.target_url }}
 
 # Things we need to do
 runs:
@@ -96,7 +96,7 @@ runs:
               echo "::error::I was unable to retrieve the target url for this ref. Check the deploy logs to see what happened."
               exit 1;
             else
-              echo "::notice::Environment deployed!"
+              echo "::notice::Environment ${target_url} deployed!"
               echo "::set-output name=target_url::${target_url}"
             fi
 
