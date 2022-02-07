@@ -88,7 +88,7 @@ runs:
                 sleep ${{ inputs.delay-in-seconds }}
 
                 target_url=$(gh api "${statusLocation}" | jq -r 'map(select(.state | contains("success"))) | .[] .target_url' )
-                printf "Attempt %d of %d.\n" "${counter}" "${numberOfSteps}
+                printf "Attempt %d of %d.\n" "${counter}" "${numberOfSteps}"
                 counter=$((++counter))
             done
 
