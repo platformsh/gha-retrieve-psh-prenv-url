@@ -13,7 +13,9 @@ seconds. Defaults to 300.
 * `delay-in-seconds` - The delay in seconds between each check. Must be whole (integer) seconds. Defaults to 10. 
 
 ## Outputs
-* `target_url` - Target URL as returned by the external (Platform.sh) integration.
+* `target_url` - Target URL as returned by the external (Platform.sh) integration. **PLEASE NOTE**: By default, our
+   integration returns the _http_ variant of the URL and **not** the https version. Your workflow will need to account
+   for this.
 
 ## Example usage:
 See `Wait for psh and get target url` step below
