@@ -37,7 +37,7 @@ jobs:
       steps:
         - name: 'Wait for psh and get target url'
           id: get-target-url
-          uses: gilzow/retrieve-psh-prenv-url@main
+          uses: platformsh/gha-retrieve-psh-prenv-url@main
           with:
             github-token: ${{ secrets.GH_TOKEN }}
         - name: 'Does Our App Work?'
