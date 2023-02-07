@@ -66,7 +66,7 @@ runs:
               exit 1;
             fi
             let steps="${totaltime}/${delay}"
-            echo "::set-output name=steps::${steps}"
+            echo "steps=${steps}" >> $GITHUB_OUTPUT
         - name: 'Retrieve Target URL'
           id: get-target-url
           shell: bash
@@ -97,7 +97,7 @@ runs:
               exit 1;
             else
               echo "::notice::Environment ${target_url} deployed!"
-              echo "::set-output name=target_url::${target_url}"
+              echo "target_url=${target_url}" >> $GITHUB_OUTPUT
             fi
 
         # See https://github.com/cli/cli/issues/5075
