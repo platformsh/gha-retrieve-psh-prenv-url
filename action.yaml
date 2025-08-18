@@ -90,8 +90,8 @@ runs:
         printf "I'm gonna check %s for a status...\n" "${statusLocation}"
         while (( counter < numberOfSteps )) && [[ -z "${target_url}" ]]; do
             sleep ${{ inputs.delay-in-seconds }}
-        
-            target_url=$(gh api "${statusLocation}" | jq -r '.[] | select(.context | (contains("platformsh") or contains("upsun"))) | select(.state | contains("success")) | .target_url' )
+            
+            target_url=$(gh api "${statusLocation}" | jq -r '[.[] | select(.context | (contains("platformsh") or contains("upsun"))) | select(.state | contains("success")) | .target_url][0]' | tr -d '\n\r')
             printf "Attempt %d of %d.\n" "${counter}" "${numberOfSteps}"
             counter=$((++counter))
         done
