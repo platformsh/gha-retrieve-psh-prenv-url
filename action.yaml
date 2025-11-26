@@ -100,6 +100,11 @@ runs:
           echo "::error::I was unable to retrieve the target url for this ref. Check the deploy logs to see what happened."
           exit 1;
         else
+          statusCount=$(tr -cd '\n' <<< "${target_url}" | wc -c)
+          if [ $statusCount -gt 1 ]; then
+            echo "::warning::More than one success status received! Please check logs. Resetting target URL to the first match."
+            target_url=$(head -n 1 <<< "${target_url}")
+          fi
           echo "::notice::Environment ${target_url} deployed!"
           echo "target_url=${target_url}" >> $GITHUB_OUTPUT
         fi
