@@ -10,7 +10,8 @@ for a Pull Request external integration until `success` is posted, and returns t
 [github context](https://docs.github.com/en/actions/learn-github-actions/contexts#github-context). 
 * `timeout` - How long (in seconds) should we continue checking for the new environment? Must be whole (integer) 
 seconds. Defaults to 300.
-* `delay-in-seconds` - The delay in seconds between each check. Must be whole (integer) seconds. Defaults to 10. 
+* `delay-in-seconds` - The delay in seconds between each check. Must be whole (integer) seconds. Defaults to 10.
+* `delay-start` - Delay the start of testing for X seconds after the PR environment is available. Must be a whole (integer) number of seconds. Defaults to empty (no delay).
 
 ## Outputs
 * `target_url` - Target URL as returned by the external (Platform.sh) integration. **PLEASE NOTE**: By default, our
