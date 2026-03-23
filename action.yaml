@@ -20,6 +20,10 @@ inputs:
     description: 'The delay in seconds between each check.'
     required: false
     default: 10
+  delay-start:
+    description: 'Delay the start of testing for X seconds after the PR environment is available.'
+    required: false
+    default: ''
 outputs:
   target_url:
     description: "Target URL as returned by the Platform.sh integration"
@@ -71,6 +75,26 @@ runs:
         fi
         let steps="${totaltime}/${delay}"
         echo "steps=${steps}" >> $GITHUB_OUTPUT
+    - name: 'Verify Delay'
+      id: 'verify-delay'
+      if: ${{ inputs.delay-start != '' }}
+      shell: bash
+      run: |
+        if [[ ! ${{ inputs.delay-start }} =~ ^-?[0-9]+$ ]]; then
+          msg="The value you gave for delay-start is not a number. I am ignoring it and will not delay the tests."
+          msg="${msg} If you need to delay the tests, double check the value you've used, and run the action again."
+          echo "::error::${msg}"
+        else
+          echo "DELAY_START=${{ inputs.delay-start }}" >> $GITHUB_ENV
+          echo "DELAY=true" >> $GITHUB_ENV
+        fi
+    - name: 'Delay start'
+      id: 'delay-test-start'
+      if: ${{ env.DELAY == 'true' }}
+      shell: bash
+      run: |
+        echo "::notice::Delaying the start for ${DELAY_START} seconds."
+        sleep ${DELAY_START};
     - name: 'Retrieve Target URL'
       id: get-target-url
       shell: bash
