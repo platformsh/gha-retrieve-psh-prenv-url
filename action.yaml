@@ -45,7 +45,7 @@ runs:
       env:
         IN_REPO: ${{ inputs.repository }}
       run: |
-        repoID=$(gh api /repos/${IN_REPO} | jq '.id')
+        repoID=$(gh api "/repos/${IN_REPO}" | jq '.id')
         if [[ "null" == "${repoID}" ]]; then
             echo "::error::The repo you gave me, ${IN_REPO}, is not valid or I do not have access to it with the GITHUB_TOKEN you used."
             exit 1;
@@ -57,7 +57,7 @@ runs:
         IN_REF: ${{ inputs.ref }}
       shell: bash
       run: |
-        refID=$(gh api /repos/${IN_REPO}/commits/${IN_REF} | jq '.sha')
+        refID=$(gh api "/repos/${IN_REPO}/commits/${IN_REF}" | jq '.sha')
         if [[ "null" == "${refID}" ]]; then
           echo "::error::The ref you gave me, ${IN_REF}, is not valid or I do not have access to it with the GITHUB_TOKEN you used."
           exit 1;
@@ -119,7 +119,7 @@ runs:
         echo "::notice::Checking if PR environment has deployed..."
         
         echo "git.head_ref is ${IN_REF}"
-        echo "respository is ${IN_REPO}"
+        echo "repository is ${IN_REPO}"
         #gh api /repos/gilzow/wordpress-tester/commits/9dfc62f/statuses | jq -r 'map(select(.state | contains("success"))) | .[] .target_url'
         counter=0
         numberOfSteps=${{ steps.setup-counts.outputs.steps }}
