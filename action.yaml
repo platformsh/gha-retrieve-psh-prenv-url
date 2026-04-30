@@ -125,7 +125,7 @@ runs:
         numberOfSteps=${{ steps.setup-counts.outputs.steps }}
         target_url=""
         printf "checking if Pr environment is deployed."
-        statusLocation="/repos/${IN_REPO}/commits/${IN_REPO}/statuses"
+        statusLocation="/repos/${IN_REPO}/commits/${IN_REF}/statuses"
         printf "I'm gonna check %s for a status...\n" "${statusLocation}"
         while (( counter < numberOfSteps )) && [[ -z "${target_url}" ]]; do
             sleep ${IN_DELAY}
