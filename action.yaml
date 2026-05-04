@@ -35,31 +35,41 @@ runs:
   steps:
     - name: 'Set up Github token'
       id: setup-gh-token
+      env:
+        IN_GH_TOKEN: ${{ inputs.github-token }}
       shell: bash
-      run: echo "GITHUB_TOKEN=${{ inputs.github-token }}" >> $GITHUB_ENV
+      run: echo "GITHUB_TOKEN=${IN_GH_TOKEN}" >> $GITHUB_ENV
     - name: 'Verify Repo Exists'
       id: verify-repo
       shell: bash
+      env:
+        IN_REPO: ${{ inputs.repository }}
       run: |
-        repoID=$(gh api /repos/${{ inputs.repository }} | jq '.id')
+        repoID=$(gh api "/repos/${IN_REPO}" | jq '.id')
         if [[ "null" == "${repoID}" ]]; then
-            echo "::error::The repo you gave me, ${{ inputs.repository }}, is not valid or I do not have access to it with the GITHUB_TOKEN you used."
+            echo "::error::The repo you gave me, ${IN_REPO}, is not valid or I do not have access to it with the GITHUB_TOKEN you used."
             exit 1;
         fi
     - name: 'Verify ref exists'
       id: verify-ref
+      env:
+        IN_REPO: ${{ inputs.repository }}
+        IN_REF: ${{ inputs.ref }}
       shell: bash
       run: |
-        refID=$(gh api /repos/${{ inputs.repository }}/commits/${{ inputs.ref }} | jq '.sha')
-        if [[ "null" == "${repoID}" ]]; then
-          echo "::error::The ref you gave me, ${{ inputs.ref }}, is not valid or I do not have access to it with the GITHUB_TOKEN you used."
+        refID=$(gh api "/repos/${IN_REPO}/commits/${IN_REF}" | jq '.sha')
+        if [[ "null" == "${refID}" ]]; then
+          echo "::error::The ref you gave me, ${IN_REF}, is not valid or I do not have access to it with the GITHUB_TOKEN you used."
           exit 1;
         fi
     - name: 'Verify timeouts, sleep delays'
       id: setup-counts
       shell: bash
+      env:
+        IN_TIMEOUT: ${{ inputs.timeout }}
+        IN_DELAY: ${{ inputs.delay-in-seconds }}
       run: |
-        totaltime=${{ inputs.timeout }}
+        totaltime="${IN_TIMEOUT}"
         if [ -z "${totaltime}" ]; then
           # if we were given a completely empty string, set it back to the default
           # would be nice if i could reference the default property {{ inputs.timeout.default }}
@@ -68,7 +78,7 @@ runs:
           echo "::error::The value you gave me for timeout must be an integer."
           exit 1;
         fi
-        delay=${{ inputs.delay-in-seconds }}
+        delay="${IN_DELAY}"
         if [ -z "${delay##*[!0-9]*}" ]; then
           echo "::error::The value you gave me for delay-in-seconds must be an integer."
           exit 1;
@@ -78,14 +88,16 @@ runs:
     - name: 'Verify Delay'
       id: 'verify-delay'
       if: ${{ inputs.delay-start != '' }}
+      env:
+        IN_DELAY_START: ${{ inputs.delay-start }}
       shell: bash
       run: |
-        if [[ ! ${{ inputs.delay-start }} =~ ^-?[0-9]+$ ]]; then
+        if [[ ! ${IN_DELAY_START} =~ ^-?[0-9]+$ ]]; then
           msg="The value you gave for delay-start is not a number. I am ignoring it and will not delay the tests."
           msg="${msg} If you need to delay the tests, double check the value you've used, and run the action again."
           echo "::error::${msg}"
         else
-          echo "DELAY_START=${{ inputs.delay-start }}" >> $GITHUB_ENV
+          echo "DELAY_START=${IN_DELAY_START}" >> $GITHUB_ENV
           echo "DELAY=true" >> $GITHUB_ENV
         fi
     - name: 'Delay start'
@@ -100,20 +112,23 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
+        IN_REF: ${{ inputs.ref }}
+        IN_REPO: ${{ inputs.repository }}
+        IN_DELAY: ${{ inputs.delay-in-seconds }}
       run: |
         echo "::notice::Checking if PR environment has deployed..."
         
-        echo "git.head_ref is ${{ inputs.ref }}"
-        echo "respository is ${{ inputs.repository }}"
+        echo "git.head_ref is ${IN_REF}"
+        echo "repository is ${IN_REPO}"
         #gh api /repos/gilzow/wordpress-tester/commits/9dfc62f/statuses | jq -r 'map(select(.state | contains("success"))) | .[] .target_url'
         counter=0
         numberOfSteps=${{ steps.setup-counts.outputs.steps }}
         target_url=""
         printf "checking if Pr environment is deployed."
-        statusLocation="/repos/${{ inputs.repository }}/commits/${{ inputs.ref }}/statuses"
+        statusLocation="/repos/${IN_REPO}/commits/${IN_REF}/statuses"
         printf "I'm gonna check %s for a status...\n" "${statusLocation}"
         while (( counter < numberOfSteps )) && [[ -z "${target_url}" ]]; do
-            sleep ${{ inputs.delay-in-seconds }}
+            sleep ${IN_DELAY}
         
             target_url=$(gh api "${statusLocation}" | jq -r '.[] | select(.context | (contains("platformsh") or contains("upsun"))) | select(.state | contains("success")) | .target_url' )
             printf "Attempt %d of %d.\n" "${counter}" "${numberOfSteps}"
